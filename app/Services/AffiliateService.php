@@ -14,7 +14,8 @@ class AffiliateService
 {
     public function __construct(
         protected ApiService $apiService
-    ) {}
+    ) {
+    }
 
     /**
      * Create a new affiliate for the merchant with the given commission rate.
@@ -27,6 +28,27 @@ class AffiliateService
      */
     public function register(Merchant $merchant, string $email, string $name, float $commissionRate): Affiliate
     {
-        // TODO: Complete this method
+        $email_in_use_as_merchant = Merchant::whereHas('user', function ($query) use ($email) {
+            $query->where('email', $email);
+        })->exists();
+
+        if ($email_in_use_as_merchant || $merchant->affiliates()->count() > 0) {
+            throw new AffiliateCreateException;
+        }
+
+        $user = User::create([
+            'email' => $email,
+            'name' => $name,
+            'type' => User::TYPE_AFFILIATE
+        ]);
+        $discountCodeResponse = $this->apiService->createDiscountCode($merchant);
+        $discountCode = $discountCodeResponse['code'];
+
+        return Affiliate::create([
+            'user_id' => $user->id,
+            'merchant_id' => $merchant->id,
+            'commission_rate' => $commissionRate,
+            'discount_code' => $discountCode
+        ]);
     }
 }

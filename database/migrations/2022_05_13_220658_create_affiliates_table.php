@@ -17,8 +17,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id');
             $table->foreignId('merchant_id');
-            // TODO: Replace me with a brief explanation of why floats aren't the correct data type, and replace with the correct data type.
-            $table->float('commission_rate');
+            // Using floating-point numbers for financial data can lead to inaccuracies due to rounding errors.
+            // Using decimal instead of float for more accurate representation of precission values.
+            $table->decimal('commission_rate', 8, 2); 
             $table->string('discount_code');
             $table->timestamps();
         });

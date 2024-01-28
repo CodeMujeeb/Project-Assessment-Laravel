@@ -18,8 +18,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('merchant_id')->constrained();
             $table->foreignId('affiliate_id')->nullable()->constrained();
-            // TODO: Replace floats with the correct data types (very similar to affiliates table)
-            $table->float('subtotal');
+             // Using floating-point numbers for financial data can lead to inaccuracies due to rounding errors.
+            // Using decimal instead of float for more accurate representation of precission values.
+            $table->decimal('subtotal', 8, 2);
             $table->float('commission_owed')->default(0.00);
             $table->string('payout_status')->default(Order::STATUS_UNPAID);
             $table->string('discount_code')->nullable();

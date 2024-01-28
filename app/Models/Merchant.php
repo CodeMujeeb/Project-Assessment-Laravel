@@ -23,7 +23,8 @@ class Merchant extends Model
         'domain',
         'display_name',
         'turn_customers_into_affiliates',
-        'default_commission_rate'
+        'default_commission_rate',
+        'user_id'
     ];
 
     public function user(): BelongsTo
@@ -34,5 +35,10 @@ class Merchant extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function affiliates(): HasMany
+    {
+        return $this->hasMany(Affiliate::class);
     }
 }

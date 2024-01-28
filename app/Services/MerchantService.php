@@ -7,6 +7,7 @@ use App\Models\Affiliate;
 use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\User;
+use Illuminate\Support\Arr;
 
 class MerchantService
 {
@@ -20,7 +21,18 @@ class MerchantService
      */
     public function register(array $data): Merchant
     {
-        // TODO: Complete this method
+        $user = User::create([
+            'name' => $data['name'],
+            'password' => $data['api_key'],
+            'email' => $data['email'],
+            'type' => User::TYPE_MERCHANT
+        ]);
+        return $user->merchant()->save(new Merchant ([
+            'domain' => $data['domain'],
+            'display_name' => $data['name'],
+            'turn_customers_into_affiliates' => $data['turn_customers_into_affiliates'] ?? true,
+            'default_commission_rate' => $data['default_commission_rate'] ?? 0.1,
+        ]));
     }
 
     /**
@@ -31,7 +43,19 @@ class MerchantService
      */
     public function updateMerchant(User $user, array $data)
     {
-        // TODO: Complete this method
+        $user->update([
+            'name' => $data['name'],
+            'password' => $data['api_key'],
+            'email' => $data['email'],
+            'type' => User::TYPE_MERCHANT,
+        ]);
+
+        $user->merchant->update([
+            'domain' => $data['domain'],
+            'display_name' => $data['name'],
+            'turn_customers_into_affiliates' => $data['turn_customers_into_affiliates'] ?? true,
+            'default_commission_rate' => $data['default_commission_rate'] ?? 0.1,
+        ]);
     }
 
     /**
@@ -43,7 +67,9 @@ class MerchantService
      */
     public function findMerchantByEmail(string $email): ?Merchant
     {
-        // TODO: Complete this method
+        return Merchant::whereHas('user', function ($query) use ($email) {
+            $query->where('email', $email);
+        })->first();
     }
 
     /**
@@ -55,6 +81,15 @@ class MerchantService
      */
     public function payout(Affiliate $affiliate)
     {
-        // TODO: Complete this method
+        $unpaidOrders = $affiliate->orders()
+            ->where('payout_status', Order::STATUS_UNPAID)
+            ->get();
+
+        foreach ($unpaidOrders as $order) {
+            if ($order->refresh()->payout_status != Order::STATUS_UNPAID) {
+                continue;
+            }
+            PayoutOrderJob::dispatch($order);
+        }
     }
 }
