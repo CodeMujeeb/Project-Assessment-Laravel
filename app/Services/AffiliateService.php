@@ -44,7 +44,7 @@ class AffiliateService
         $discountCodeResponse = $this->apiService->createDiscountCode($merchant);
         $discountCode = $discountCodeResponse['code'];
 
-        return Affiliate::create([
+        return $merchant->affiliates()->create([
             'user_id' => $user->id,
             'merchant_id' => $merchant->id,
             'commission_rate' => $commissionRate,
